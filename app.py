@@ -23,8 +23,8 @@ def get_headers():
     }
 
 
-def fetch_page(query):
-    url = f"https://www.amazon.in/s?k={query}"
+def fetch_page(query,page):
+    url = f"https://www.amazon.in/s?k={query}&page={page}"
     headers = get_headers()
     response = requests.get(url, headers=headers)
     response.raise_for_status()
@@ -59,14 +59,18 @@ def parse_product(item):
         return {"error": "Parsing failed", "details": str(e)}
 
 
-def scrape_amazon(query):
-    soup = fetch_page(query)
+def scrape_amazon(query, page):
+    soup = fetch_page(query,page)
     results = []
     for item in soup.find_all('div', attrs={'role': 'listitem', 'data-component-type': 's-search-result'}):
         product = parse_product(item)
         if "error" not in product:
             results.append(product)
-    return results
+    return {
+        "query": query,
+        "page": page,
+        "results": results
+    }
 
 
 # ---------- Routes ----------
@@ -75,8 +79,9 @@ def scrape_amazon(query):
 @app.route('/scrape', methods=['GET'])
 def scrape_route():
     query = request.args.get('query', default='smartphone')
+    page = request.args.get('page', default=1)
     try:
-        data = scrape_amazon(query)
+        data = scrape_amazon(query, page)
         return jsonify(data)
     except Exception as e:
         return jsonify({"error": "Scraping failed", "details": str(e)}), 500
