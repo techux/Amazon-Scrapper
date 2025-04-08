@@ -34,6 +34,7 @@ def fetch_page(query):
 def parse_product(item):
     try:
         title = item.find('div', attrs={'data-cy': 'title-recipe'}).text.strip()
+        image = item.find('img', attrs={'class': 's-image'})['src']
         show_price = item.find('span', attrs={'class': 'a-price-whole'}).text.strip().replace(',', '')
         actual_price = item.find('div', attrs={'class': 'aok-inline-block'}).find_all('span')[-1].text.replace(',', '')[1:]
         discount = item.find('div', attrs={'class': 'a-color-base'}).find_all('span')[-1].text.split("%")[0].replace("(", "")
@@ -46,6 +47,7 @@ def parse_product(item):
 
         return {
             "title": title,
+            "image": image,
             "link": link,
             "show_price": show_price,
             "actual_price": actual_price,
